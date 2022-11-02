@@ -1,0 +1,13 @@
+<div class='card-head'>
+  <img class='country-flag' src='{{flags.svg}}' alt='{{name}}' />
+  <h1>{{name}}</h1>
+</div>
+<ul>
+  <li><span class='title'>Capital: </span>{{capital}}</li>
+  <li><span class='title'>Population: </span>{{population}}</li>
+  <li><span class='title'>Languages: </span>
+    {{#each languages}}
+      {{name}}
+    {{/each}}
+  </li>
+</ul>
