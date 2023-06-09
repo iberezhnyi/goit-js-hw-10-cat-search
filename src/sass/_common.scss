@@ -1,0 +1,14 @@
+@import '~node_modules/modern-normalize/modern-normalize.css';
+
+body .is-hidden {
+  display: none;
+}
+
+h2,
+p {
+  margin: 0;
+}
+
+.container {
+  margin: 15px 20px;
+}

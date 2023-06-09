@@ -1,59 +1,77 @@
-import './css/styles.css';
-import debounce from 'lodash.debounce';
+import { fetchBreeds, fetchCatByBreed } from './js/cat-api';
+import SlimSelect from 'slim-select';
+import 'slim-select/dist/slimselect.css';
 import { Notify } from 'notiflix/build/notiflix-notify-aio';
-import getRefs from './get-refs';
-import CountriesListMarkup from './templates/countries-list-markup.hbs';
-import countryCardMarkup from './templates/country-card-markup.hbs';
-import { fetchCountries } from './fetchCountries';
+import refs from './js/refs';
+import { isHiddenToggle } from './js/helpers';
 
-const DEBOUNCE_DELAY = 300;
-const refs = getRefs();
+const { select, catInfo, loader, error: errorRef } = refs;
 
-refs.inputEl.addEventListener('input', debounce(onInputChange, DEBOUNCE_DELAY));
+fetchBreeds()
+  .then(data => {
+    isHiddenToggle(loader, select);
 
-function onInputChange(e) {
-  const inputValue = e.target.value.trim();
+    createSelectMarcup(data);
+  })
+  .catch(error => {
+    console.log(error);
+    Notify.failure('Oops! Something went wrong! Try reloading the page!');
+    isHiddenToggle(loader, errorRef);
+  });
 
-  resetMarkup();
+function createSelectMarcup(data) {
+  const marcup = data
+    .map(({ id, name }) => `<option value="${id}">${name}</option>`)
+    .join('');
 
-  if (!inputValue) {
-    return;
+  select.insertAdjacentHTML('beforeend', marcup);
+
+  new SlimSelect({
+    select: '.breed-select',
+  });
+}
+
+// ===================================================
+select.addEventListener('change', onSelect);
+
+function onSelect(evt) {
+  const catId = evt.target.value;
+
+  catInfo.innerHTML = '';
+
+  if (!errorRef.classList.contains('is-hidden')) {
+    isHiddenToggle(errorRef);
   }
 
-  fetchCountries(inputValue)
-    .then(filteredCountriesByArrayLength)
-    .catch(error => console.log(error));
+  isHiddenToggle(loader);
+
+  fetchCatByBreed(catId)
+    .then(createCatInfoMarcup)
+    .catch(error => {
+      console.log(error);
+      Notify.failure('Oops! Something went wrong! Try reloading the page!');
+      isHiddenToggle(loader, errorRef);
+    });
 }
 
-function filteredCountriesByArrayLength(arrayCountries) {
-  if (arrayCountries.length <= 10 && arrayCountries.length > 1) {
-    renderCountriesList(arrayCountries);
-  } else if (arrayCountries.length === 1) {
-    renderCountryCard(arrayCountries);
-  } else if (!arrayCountries.length) {
-    onFetchError();
-  } else {
-    Notify.info('Too many matches found. Please enter a more specific name.');
-  }
-}
+function createCatInfoMarcup(data) {
+  const marcupCat = data.map(element => {
+    return element.breeds
+      .map(
+        ({ temperament, description, name }) => `
+    <img src="${element.url}" alt="${name}" width="500">
+    <div class="cat-info-thumb">
+      <h2 class="cat-info-title">${name}</h2>
+      <p>${description}</p>
+      <div>
+        <h3 class="cat-info-subtitle">Temperament:</h3>
+        <p class="cat-info-text">${temperament}</p>
+      </div>
+    </div>`
+      )
+      .join('');
+  });
 
-function renderCountryCard(country) {
-  const markup = country.map(countryCardMarkup).join('');
-
-  refs.countryContainerEl.innerHTML = markup;
-}
-
-function renderCountriesList(country) {
-  const markup = country.map(CountriesListMarkup).join('');
-
-  refs.countriesList.innerHTML = markup;
-}
-
-function resetMarkup() {
-  refs.countriesList.innerHTML = '';
-  refs.countryContainerEl.innerHTML = '';
-}
-
-function onFetchError() {
-  Notify.failure('Oops, there is no country with that name');
+  isHiddenToggle(loader);
+  catInfo.insertAdjacentHTML('beforeend', marcupCat);
 }
