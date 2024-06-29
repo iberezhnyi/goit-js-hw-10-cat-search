@@ -31,7 +31,8 @@ function createSelectMarcup(data) {
   });
 }
 
-// ===================================================
+// Select block
+
 select.addEventListener('change', onSelect);
 
 function onSelect(evt) {
@@ -39,9 +40,7 @@ function onSelect(evt) {
 
   catInfo.innerHTML = '';
 
-  if (!errorRef.classList.contains('is-hidden')) {
-    isHiddenToggle(errorRef);
-  }
+  if (!errorRef.classList.contains('is-hidden')) isHiddenToggle(errorRef);
 
   isHiddenToggle(loader);
 
@@ -55,8 +54,8 @@ function onSelect(evt) {
 }
 
 function createCatInfoMarcup(data) {
-  const marcupCat = data.map(element => {
-    return element.breeds
+  const marcupCat = data.map(element =>
+    element.breeds
       .map(
         ({ temperament, description, name }) => `
     <img src="${element.url}" alt="${name}" width="500">
@@ -69,8 +68,8 @@ function createCatInfoMarcup(data) {
       </div>
     </div>`
       )
-      .join('');
-  });
+      .join('')
+  );
 
   isHiddenToggle(loader);
   catInfo.insertAdjacentHTML('beforeend', marcupCat);
